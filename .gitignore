@@ -1,0 +1,4 @@
+# Ignore build and Gradle stuff
+.gradle/
+build/
+out/
