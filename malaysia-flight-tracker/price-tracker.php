@@ -6,51 +6,26 @@ $active_page = 'tracker';
 $base_path   = '';
 $airports    = get_airport_list();
 
-$from   = strtoupper(preg_replace('/[^A-Z]/', '', $_GET['from']   ?? 'KUL'));
-$to     = strtoupper(preg_replace('/[^A-Z]/', '', $_GET['to']     ?? ''));
-$target = is_numeric($_GET['target'] ?? '') ? (int)$_GET['target'] : 300;
-
-$success_msg = '';
-$error_msg   = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $p_from   = strtoupper(preg_replace('/[^A-Z]/', '', $_POST['from']   ?? ''));
-    $p_to     = strtoupper(preg_replace('/[^A-Z]/', '', $_POST['to']     ?? ''));
-    $p_date   = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_POST['date']  ?? '') ? $_POST['date'] : '';
-    $p_target = is_numeric($_POST['target'] ?? '') ? (int)$_POST['target'] : 0;
-    $p_email  = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
-
-    if (!$p_from || !$p_to || !$p_date || !$p_target || !filter_var($p_email, FILTER_VALIDATE_EMAIL)) {
-        $error_msg = 'Please fill in all fields correctly.';
-    } else {
-        $from_city_p = $airports[$p_from]['city'] ?? $p_from;
-        $to_city_p   = $airports[$p_to]['city']   ?? $p_to;
-        $success_msg = "✅ Alert set! We'll email <strong>$p_email</strong> when {$from_city_p} → {$to_city_p} drops below <strong>RM $p_target</strong> on " . date('d M Y', strtotime($p_date)) . ".";
-    }
-}
-
-// Generate sample price data for the tracker view
-$sample_routes_tracker = [
-    ['from'=>'KUL','to'=>'BKI','label'=>'KL → Kota Kinabalu'],
-    ['from'=>'KUL','to'=>'PEN','label'=>'KL → Penang'],
-    ['from'=>'KUL','to'=>'LGK','label'=>'KL → Langkawi'],
-    ['from'=>'KUL','to'=>'KCH','label'=>'KL → Kuching'],
+$sample_routes = [
+    ['from'=>'KUL','to'=>'SIN','label'=>'KL → Singapore'],
+    ['from'=>'KUL','to'=>'DXB','label'=>'KL → Dubai'],
+    ['from'=>'KUL','to'=>'LHR','label'=>'KL → London'],
+    ['from'=>'KUL','to'=>'SYD','label'=>'KL → Sydney'],
+    ['from'=>'KUL','to'=>'NRT','label'=>'KL → Tokyo'],
+    ['from'=>'SIN','to'=>'JFK','label'=>'Singapore → New York'],
 ];
 
 $trend_data = [];
-foreach ($sample_routes_tracker as $sr) {
+foreach ($sample_routes as $sr) {
     $fl = generate_flights($sr['from'], $sr['to'], date('Y-m-d', strtotime('+7 days')), 1);
     if ($fl) {
         $trend_data[] = [
-            'route'     => $sr['label'],
-            'from'      => $sr['from'],
-            'to'        => $sr['to'],
-            'current'   => $fl[0]['economy_price'],
-            'low'       => $fl[0]['low_price'],
-            'high'      => $fl[0]['high_price'],
-            'history'   => $fl[0]['price_history'],
-            'airline'   => $fl[0]['airline'],
-            'flight_no' => $fl[0]['flight_no'],
+            'route'   => $sr['label'],
+            'from'    => $sr['from'], 'to' => $sr['to'],
+            'current' => $fl[0]['economy_price'],
+            'low'     => $fl[0]['low_price'],
+            'high'    => $fl[0]['high_price'],
+            'airline' => $fl[0]['airline'],
         ];
     }
 }
@@ -58,124 +33,58 @@ foreach ($sample_routes_tracker as $sr) {
 require_once 'includes/header.php';
 ?>
 
+<script>
+const AIRPORTS = <?= json_encode(array_map(fn($code,$ap)=>['code'=>$code,'city'=>$ap['city'],'country'=>$ap['country'],'name'=>$ap['name'],'region'=>$ap['region']], array_keys($airports), $airports), JSON_UNESCAPED_UNICODE) ?>;
+</script>
+
 <div class="tracker-page">
 <div class="tracker-hero">
     <div class="container">
         <h1 class="tracker-title">✈️ Flight Price Tracker</h1>
-        <p class="tracker-subtitle">Never overpay for flights again. Set your target price and get an email the moment fares drop.</p>
+        <p class="tracker-subtitle">Set a budget, watch a route — FlightGo alerts you on-screen the moment prices drop.</p>
     </div>
 </div>
 
 <div class="container tracker-layout">
 
-    <!-- Alert Setup Form -->
-    <div class="tracker-form-card">
-        <h2 class="card-title">🔔 Set a Price Alert</h2>
-        <p class="card-sub">Enter your route, travel date, and budget. We'll notify you when the price drops.</p>
-
-        <?php if ($success_msg): ?>
-        <div class="alert-success"><?= $success_msg ?></div>
-        <?php elseif ($error_msg): ?>
-        <div class="alert-error"><?= htmlspecialchars($error_msg) ?></div>
-        <?php endif; ?>
-
-        <form method="POST" action="price-tracker.php" class="tracker-form">
-            <div class="tform-row">
-                <div class="tform-group">
-                    <label>From</label>
-                    <select name="from" required>
-                        <option value="">Select city</option>
-                        <?php foreach ($airports as $code => $ap): ?>
-                        <option value="<?= $code ?>" <?= $code === $from ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($ap['city']) ?> (<?= $code ?>)
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="tform-group">
-                    <label>To</label>
-                    <select name="to" required>
-                        <option value="">Select city</option>
-                        <?php foreach ($airports as $code => $ap): ?>
-                        <option value="<?= $code ?>" <?= $code === $to ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($ap['city']) ?> (<?= $code ?>)
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-            <div class="tform-row">
-                <div class="tform-group">
-                    <label>Travel Date</label>
-                    <input type="date" name="date" required
-                           min="<?= date('Y-m-d') ?>"
-                           value="<?= date('Y-m-d', strtotime('+14 days')) ?>">
-                </div>
-                <div class="tform-group">
-                    <label>Target Price (MYR per person)</label>
-                    <div class="price-input-wrap">
-                        <span class="currency-prefix">RM</span>
-                        <input type="number" name="target" required min="50" max="5000"
-                               value="<?= htmlspecialchars($target) ?>" placeholder="e.g. 200">
-                    </div>
-                </div>
-            </div>
-            <div class="tform-row">
-                <div class="tform-group tform-group--wide">
-                    <label>Email Address</label>
-                    <input type="email" name="email" required placeholder="your@email.com">
-                </div>
-            </div>
-            <button type="submit" class="tracker-submit-btn">
-                🔔 Activate Price Alert
-            </button>
-            <p class="form-note">* This is a demo. No actual emails are sent. For a real implementation, integrate with your SMTP server.</p>
-        </form>
-    </div>
-
-    <!-- How It Works -->
+    <!-- How it works -->
     <div class="how-it-works">
-        <h2>How Price Tracking Works</h2>
+        <h2>How It Works</h2>
         <div class="steps">
             <div class="step">
                 <div class="step-num">1</div>
-                <div class="step-content">
-                    <h4>Set Your Route & Budget</h4>
-                    <p>Choose your departure and destination cities, travel date, and the maximum price you want to pay.</p>
-                </div>
+                <div class="step-content"><h4>Search Any Route</h4><p>Search flights between any of our 80+ worldwide airports.</p></div>
             </div>
             <div class="step">
                 <div class="step-num">2</div>
-                <div class="step-content">
-                    <h4>We Monitor 24/7</h4>
-                    <p>Our system continuously checks prices across all Malaysian airlines — AirAsia, Malaysia Airlines, Batik Air and more.</p>
-                </div>
+                <div class="step-content"><h4>Click 🔔 Watch</h4><p>Hit the Watch button on any flight card and set your target price.</p></div>
             </div>
             <div class="step">
                 <div class="step-num">3</div>
-                <div class="step-content">
-                    <h4>Get Alerted Instantly</h4>
-                    <p>The moment a fare drops to or below your target price, you receive an email with a direct link to book.</p>
-                </div>
+                <div class="step-content"><h4>Get In-App Alerts</h4><p>Every time you visit FlightGo, prices are checked automatically. If your target is hit, the bell icon lights up.</p></div>
             </div>
+        </div>
+        <div class="step-cta">
+            <a href="watchlist.php" class="btn-primary">📋 View My Watchlist</a>
+            <a href="index.php" class="btn-outline-dark">🔍 Search Flights</a>
         </div>
     </div>
 
     <!-- Live Price Monitor -->
     <div class="live-monitor">
         <h2 class="section-title">📈 Live Price Monitor — Popular Routes</h2>
-        <p class="section-sub">Current economy class prices vs 30-day range (1 adult, departing next week)</p>
+        <p class="section-sub">Economy class · 1 adult · departing next week · all prices in MYR</p>
         <div class="monitor-grid">
             <?php foreach ($trend_data as $td):
-                $pct = min(100, round(($td['current'] - $td['low']) / max(1, $td['high'] - $td['low']) * 100));
-                $status_cls = $pct <= 20 ? 'status--low' : ($pct <= 60 ? 'status--mid' : 'status--high');
-                $status_txt = $pct <= 20 ? '🟢 Great Deal' : ($pct <= 60 ? '🟡 Average' : '🔴 Expensive');
+                $pct = min(100, round(($td['current']-$td['low'])/max(1,$td['high']-$td['low'])*100));
+                $sc  = $pct<=20?'status--low':($pct<=60?'status--mid':'status--high');
+                $st  = $pct<=20?'🟢 Great Deal':($pct<=60?'🟡 Average':'🔴 Expensive');
             ?>
             <div class="monitor-card">
                 <div class="monitor-route"><?= htmlspecialchars($td['route']) ?></div>
                 <div class="monitor-price-row">
                     <div class="monitor-price">RM <?= number_format($td['current']) ?></div>
-                    <div class="monitor-status <?= $status_cls ?>"><?= $status_txt ?></div>
+                    <div class="monitor-status <?= $sc ?>"><?= $st ?></div>
                 </div>
                 <div class="monitor-range">
                     <span class="range-low">RM <?= number_format($td['low']) ?></span>
@@ -186,51 +95,52 @@ require_once 'includes/header.php';
                     <span class="range-high">RM <?= number_format($td['high']) ?></span>
                 </div>
                 <div class="monitor-actions">
-                    <a href="search.php?from=<?=$td['from']?>&to=<?=$td['to']?>&date=<?=date('Y-m-d',strtotime('+7 days'))?>&pax=1" class="monitor-search-btn">Search Flights</a>
-                    <a href="price-tracker.php?from=<?=$td['from']?>&to=<?=$td['to']?>&target=<?=$td['current']?>" class="monitor-alert-btn">🔔 Alert Me</a>
+                    <a href="search.php?from=<?=$td['from']?>&to=<?=$td['to']?>&date=<?=date('Y-m-d',strtotime('+7 days'))?>&pax=1" class="monitor-search-btn">Search</a>
+                    <button class="monitor-alert-btn watchlist-quick-add"
+                            data-from="<?=$td['from']?>" data-to="<?=$td['to']?>"
+                            data-date="<?=date('Y-m-d',strtotime('+7 days'))?>"
+                            data-price="<?=$td['current']?>"
+                            data-from-city="<?=htmlspecialchars(explode(' → ',$td['route'])[0])?>"
+                            data-to-city="<?=htmlspecialchars(explode(' → ',$td['route'])[1]??' ')?>">
+                        🔔 Watch
+                    </button>
                 </div>
             </div>
             <?php endforeach; ?>
         </div>
     </div>
 
-    <!-- Tips Section -->
+    <!-- Tips -->
     <div class="tips-section">
-        <h2>💡 Tips to Get the Cheapest Flights in Malaysia</h2>
+        <h2>💡 Tips to Find Cheapest International Flights</h2>
         <div class="tips-grid">
-            <div class="tip-card">
-                <div class="tip-icon">📅</div>
-                <h4>Book 3–8 Weeks Ahead</h4>
-                <p>Sweet spot for domestic Malaysian flights. Too early or too late both cost more.</p>
-            </div>
-            <div class="tip-card">
-                <div class="tip-icon">🕐</div>
-                <h4>Fly Off-Peak Hours</h4>
-                <p>Early morning (6–8am) and late night (10pm+) flights are often 15–25% cheaper.</p>
-            </div>
-            <div class="tip-card">
-                <div class="tip-icon">📆</div>
-                <h4>Avoid Weekends & Holidays</h4>
-                <p>Fly on Tuesdays or Wednesdays for the best deals. Public holidays spike prices dramatically.</p>
-            </div>
-            <div class="tip-card">
-                <div class="tip-icon">🔔</div>
-                <h4>Use Price Alerts</h4>
-                <p>Airlines regularly drop prices. Set an alert and book when the fare hits your budget.</p>
-            </div>
-            <div class="tip-card">
-                <div class="tip-icon">✈️</div>
-                <h4>Compare All Airlines</h4>
-                <p>AirAsia is not always cheapest! Check Malaysia Airlines and Batik Air for deals.</p>
-            </div>
-            <div class="tip-card">
-                <div class="tip-icon">🎒</div>
-                <h4>Go Carry-On Only</h4>
-                <p>Save RM 30–80 on short routes by packing light and skipping checked baggage.</p>
-            </div>
+            <div class="tip-card"><div class="tip-icon">📅</div><h4>Book 6–12 Weeks Ahead</h4><p>International flights see the best prices when booked 6–12 weeks before departure.</p></div>
+            <div class="tip-card"><div class="tip-icon">🕐</div><h4>Fly Tuesdays & Wednesdays</h4><p>Mid-week departures can be 15–30% cheaper than Friday or Sunday.</p></div>
+            <div class="tip-card"><div class="tip-icon">🌏</div><h4>Use Hub Airports</h4><p>Flying via KUL, SIN, or DXB as a hub often unlocks cheaper fares than direct routes.</p></div>
+            <div class="tip-card"><div class="tip-icon">🔔</div><h4>Set Multiple Alerts</h4><p>Watch several dates around your travel window — prices vary wildly day to day.</p></div>
+            <div class="tip-card"><div class="tip-icon">✈️</div><h4>Compare All Cabin Classes</h4><p>Sometimes Business Class on a budget airline is cheaper than Economy on a full-service carrier.</p></div>
+            <div class="tip-card"><div class="tip-icon">🎒</div><h4>Go Carry-On Only</h4><p>On LCCs like AirAsia, skipping checked baggage saves RM 80–250 per flight.</p></div>
         </div>
     </div>
 </div>
+</div>
+
+<!-- Watchlist Modal -->
+<div class="modal-overlay" id="watchlist-modal" style="display:none">
+    <div class="modal-box">
+        <div class="modal-header"><h3>🔔 Add to Watchlist</h3><button class="modal-close" id="modal-close">✕</button></div>
+        <div class="modal-body">
+            <p class="modal-route" id="modal-route"></p>
+            <p class="modal-sub">Current price: <strong id="modal-current-price"></strong></p>
+            <label class="modal-label">Your target price (MYR per person)</label>
+            <div class="modal-price-wrap"><span class="modal-rm">RM</span><input type="number" id="modal-target" min="50" max="50000" placeholder="e.g. 500"></div>
+            <p class="modal-hint">We'll notify you on-screen when the price hits your target.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-cancel" id="modal-cancel">Cancel</button>
+            <button class="modal-confirm" id="modal-confirm">Add to Watchlist</button>
+        </div>
+    </div>
 </div>
 
 <?php require_once 'includes/footer.php'; ?>

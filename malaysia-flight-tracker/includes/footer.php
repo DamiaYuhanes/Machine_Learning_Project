@@ -3,7 +3,7 @@
         <div class="footer-brand">
             <span class="logo-icon">✈</span>
             <span class="logo-text">Flight<span class="logo-accent">Go</span></span>
-            <p class="footer-tagline">Malaysia's smartest flight price tracker</p>
+            <p class="footer-tagline">Global flight price tracker — 80+ airports worldwide</p>
         </div>
         <div class="footer-links">
             <div class="footer-col">
@@ -17,12 +17,12 @@
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Popular Routes</h4>
+                <h4>Popular International</h4>
                 <ul>
-                    <li><a href="search.php?from=KUL&to=BKI&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Kota Kinabalu</a></li>
-                    <li><a href="search.php?from=KUL&to=PEN&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Penang</a></li>
-                    <li><a href="search.php?from=KUL&to=KCH&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Kuching</a></li>
-                    <li><a href="search.php?from=KUL&to=LGK&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Langkawi</a></li>
+                    <li><a href="search.php?from=KUL&to=SIN&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Singapore</a></li>
+                    <li><a href="search.php?from=KUL&to=LHR&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → London</a></li>
+                    <li><a href="search.php?from=KUL&to=DXB&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Dubai</a></li>
+                    <li><a href="search.php?from=KUL&to=NRT&date=<?= date('Y-m-d', strtotime('+7 days')) ?>&pax=1">KL → Tokyo</a></li>
                 </ul>
             </div>
             <div class="footer-col">

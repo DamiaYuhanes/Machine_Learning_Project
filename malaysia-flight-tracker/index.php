@@ -1,36 +1,48 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$page_title  = 'FlightGo — Malaysia Flight Price Tracker';
+$page_title  = 'FlightGo — Global Flight Price Tracker';
 $active_page = 'home';
 $base_path   = '';
 $airports    = get_airport_list();
+$grouped     = get_airports_grouped();
 
 $popular_routes = [
-    ['from' => 'KUL', 'to' => 'BKI', 'tag' => 'Most Popular'],
-    ['from' => 'KUL', 'to' => 'PEN', 'tag' => 'Best Deal'],
-    ['from' => 'KUL', 'to' => 'KCH', 'tag' => 'Trending'],
-    ['from' => 'KUL', 'to' => 'LGK', 'tag' => 'Holiday Spot'],
-    ['from' => 'PEN', 'to' => 'BKI', 'tag' => 'Explorer'],
-    ['from' => 'JHB', 'to' => 'BKI', 'tag' => 'Adventure'],
+    ['from'=>'KUL','to'=>'SIN','tag'=>'Most Popular'],
+    ['from'=>'KUL','to'=>'BKK','tag'=>'Best Deal'],
+    ['from'=>'KUL','to'=>'LHR','tag'=>'Long Haul Pick'],
+    ['from'=>'KUL','to'=>'DXB','tag'=>'Trending'],
+    ['from'=>'KUL','to'=>'SYD','tag'=>'Holiday Spot'],
+    ['from'=>'SIN','to'=>'NRT','tag'=>'Asia Favourite'],
+    ['from'=>'KUL','to'=>'ICN','tag'=>'K-Trip'],
+    ['from'=>'KUL','to'=>'HKG','tag'=>'Quick Getaway'],
 ];
 
-// Show prices for popular routes (1 week ahead)
 $next_week = date('Y-m-d', strtotime('+7 days'));
 foreach ($popular_routes as &$r) {
     $fl = generate_flights($r['from'], $r['to'], $next_week, 1);
-    $r['min_price'] = $fl ? $fl[0]['economy_price'] : null;
+    $r['min_price']  = $fl ? $fl[0]['economy_price'] : null;
+    $r['from_city']  = $airports[$r['from']]['city'] ?? $r['from'];
+    $r['to_city']    = $airports[$r['to']]['city']   ?? $r['to'];
+    $r['to_country'] = $airports[$r['to']]['country'] ?? '';
 }
 unset($r);
 
 require_once 'includes/header.php';
 ?>
 
+<!-- Airport datalist for autocomplete -->
+<datalist id="airport-list">
+    <?php foreach ($airports as $code => $ap): ?>
+    <option value="<?= $code ?>" label="<?= htmlspecialchars("{$ap['city']}, {$ap['country']} ({$code})") ?>">
+    <?php endforeach; ?>
+</datalist>
+
 <section class="hero">
     <div class="hero-bg"></div>
     <div class="container hero-content">
-        <h1 class="hero-title">Find the Cheapest Flights in Malaysia</h1>
-        <p class="hero-subtitle">Compare prices from AirAsia, Malaysia Airlines, Batik Air & more. Track price drops and fly smart.</p>
+        <h1 class="hero-title">Fly Anywhere. Pay Less.</h1>
+        <p class="hero-subtitle">Compare flights from 80+ airports worldwide. Track prices & get alerted when fares drop.</p>
 
         <div class="search-card" id="search-card">
             <div class="trip-tabs">
@@ -44,14 +56,13 @@ require_once 'includes/header.php';
                 <div class="form-row">
                     <div class="form-group airport-group">
                         <label>From</label>
-                        <div class="airport-input-wrap">
+                        <div class="airport-search-wrap">
                             <span class="input-icon">🛫</span>
-                            <select name="from" id="from" required>
-                                <option value="">Select departure city</option>
-                                <?php foreach ($airports as $code => $ap): ?>
-                                    <option value="<?= $code ?>"><?= htmlspecialchars($ap['city']) ?> (<?= $code ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="from-search" class="airport-search-input"
+                                   placeholder="City or airport code…" autocomplete="off"
+                                   value="Kuala Lumpur (KUL)">
+                            <input type="hidden" name="from" id="from" value="KUL" required>
+                            <div class="airport-dropdown" id="from-dropdown"></div>
                         </div>
                     </div>
 
@@ -59,21 +70,19 @@ require_once 'includes/header.php';
 
                     <div class="form-group airport-group">
                         <label>To</label>
-                        <div class="airport-input-wrap">
+                        <div class="airport-search-wrap">
                             <span class="input-icon">🛬</span>
-                            <select name="to" id="to" required>
-                                <option value="">Select arrival city</option>
-                                <?php foreach ($airports as $code => $ap): ?>
-                                    <option value="<?= $code ?>"><?= htmlspecialchars($ap['city']) ?> (<?= $code ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" id="to-search" class="airport-search-input"
+                                   placeholder="City or airport code…" autocomplete="off">
+                            <input type="hidden" name="to" id="to" value="" required>
+                            <div class="airport-dropdown" id="to-dropdown"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Departure Date</label>
+                        <label>Departure</label>
                         <div class="input-wrap">
                             <span class="input-icon">📅</span>
                             <input type="date" name="date" id="dep-date" required
@@ -82,8 +91,8 @@ require_once 'includes/header.php';
                         </div>
                     </div>
 
-                    <div class="form-group return-field" id="return-field" style="display:none">
-                        <label>Return Date</label>
+                    <div class="form-group" id="return-field" style="display:none">
+                        <label>Return</label>
                         <div class="input-wrap">
                             <span class="input-icon">📅</span>
                             <input type="date" name="return_date" id="ret-date"
@@ -101,13 +110,14 @@ require_once 'includes/header.php';
                         </div>
                     </div>
 
-                    <div class="form-group class-group">
-                        <label>Class</label>
+                    <div class="form-group">
+                        <label>Cabin Class</label>
                         <div class="input-wrap">
                             <span class="input-icon">💺</span>
                             <select name="class" id="cabin-class">
                                 <option value="economy">Economy</option>
                                 <option value="business">Business</option>
+                                <option value="first">First Class</option>
                             </select>
                         </div>
                     </div>
@@ -121,16 +131,19 @@ require_once 'includes/header.php';
     </div>
 </section>
 
-<!-- Airline Strip -->
+<!-- Airlines Strip -->
 <section class="airlines-strip">
     <div class="container">
         <p class="strip-label">Comparing prices from</p>
-        <div class="airlines-list">
-            <div class="airline-badge" style="--c:#FF0000">AirAsia</div>
-            <div class="airline-badge" style="--c:#003087">Malaysia Airlines</div>
-            <div class="airline-badge" style="--c:#C8102E">Batik Air</div>
-            <div class="airline-badge" style="--c:#FF6600">Firefly</div>
-            <div class="airline-badge" style="--c:#FF0000">AirAsia X</div>
+        <div class="airlines-scroll">
+            <?php
+            $show = ['AK'=>'AirAsia','MH'=>'Malaysia Airlines','EK'=>'Emirates','SQ'=>'Singapore Airlines',
+                     'QR'=>'Qatar Airways','BA'=>'British Airways','CX'=>'Cathay Pacific',
+                     'TG'=>'Thai Airways','QF'=>'Qantas','LH'=>'Lufthansa'];
+            foreach ($show as $c => $n): ?>
+            <div class="airline-chip"><?= $n ?></div>
+            <?php endforeach; ?>
+            <div class="airline-chip airline-chip--more">+30 more</div>
         </div>
     </div>
 </section>
@@ -139,20 +152,25 @@ require_once 'includes/header.php';
 <section class="popular-routes">
     <div class="container">
         <div class="section-header">
-            <h2>Popular Routes</h2>
-            <p>Best deals found for next week</p>
+            <h2>Popular International Routes</h2>
+            <p>Cheapest economy fares found for next week</p>
         </div>
         <div class="routes-grid">
             <?php foreach ($popular_routes as $r): ?>
-            <a href="search.php?from=<?= $r['from'] ?>&to=<?= $r['to'] ?>&date=<?= $next_week ?>&pax=1"
+            <a href="search.php?from=<?= $r['from'] ?>&to=<?= $r['to'] ?>&date=<?= $next_week ?>&pax=1&class=economy"
                class="route-card">
                 <div class="route-tag"><?= htmlspecialchars($r['tag']) ?></div>
                 <div class="route-cities">
-                    <span class="route-city"><?= htmlspecialchars($airports[$r['from']]['city']) ?></span>
+                    <div>
+                        <div class="route-city"><?= htmlspecialchars($r['from_city']) ?></div>
+                        <div class="route-code"><?= $r['from'] ?></div>
+                    </div>
                     <span class="route-arrow">✈</span>
-                    <span class="route-city"><?= htmlspecialchars($airports[$r['to']]['city']) ?></span>
+                    <div>
+                        <div class="route-city"><?= htmlspecialchars($r['to_city']) ?></div>
+                        <div class="route-code"><?= $r['to'] ?> · <?= htmlspecialchars($r['to_country']) ?></div>
+                    </div>
                 </div>
-                <div class="route-codes"><?= $r['from'] ?> → <?= $r['to'] ?></div>
                 <?php if ($r['min_price']): ?>
                 <div class="route-price">
                     <span class="from-label">from</span>
@@ -168,45 +186,54 @@ require_once 'includes/header.php';
 <!-- Features -->
 <section class="features">
     <div class="container">
-        <div class="section-header">
-            <h2>Why FlightGo?</h2>
-        </div>
+        <div class="section-header"><h2>Why FlightGo?</h2></div>
         <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3>80+ Airports Worldwide</h3>
+                <p>Search flights across Asia, Europe, Middle East, Americas, Africa and Oceania.</p>
+            </div>
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
                 <h3>Price History Charts</h3>
-                <p>See how prices have changed over the past 30 days so you know the best time to buy.</p>
+                <p>See 30-day price trends for every flight so you know when prices are low.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔔</div>
-                <h3>Price Drop Alerts</h3>
-                <p>Set your target price and get notified by email when fares drop below your budget.</p>
+                <h3>In-App Price Alerts</h3>
+                <p>Add flights to your watchlist with a target price. Get notified on the website the moment prices match.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
-                <h3>Real-Time Comparison</h3>
-                <p>Instantly compare all available flights sorted by price, duration, or airline.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🇲🇾</div>
-                <h3>Malaysia Focused</h3>
-                <p>Specialised for domestic Malaysian routes with all local airlines covered.</p>
+                <h3>40+ Airlines</h3>
+                <p>Compare AirAsia, Emirates, Singapore Airlines, British Airways and many more in one search.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Price Trend Banner -->
+<!-- Watchlist CTA -->
 <section class="trend-banner">
     <div class="container">
         <div class="trend-content">
             <div>
-                <h3>📈 Track Prices Like a Pro</h3>
-                <p>Set up a price alert and we'll notify you when your route drops in price. Save up to 40% by flying at the right time.</p>
+                <h3>📋 Your Price Watchlist</h3>
+                <p>Set a target price for any route. We check prices every time you visit and alert you on-screen when your price is hit.</p>
             </div>
-            <a href="price-tracker.php" class="btn-outline">Set Price Alert →</a>
+            <a href="watchlist.php" class="btn-outline">View My Watchlist →</a>
         </div>
     </div>
 </section>
+
+<!-- Airport JS data for autocomplete -->
+<script>
+const AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
+    'code'    => $code,
+    'city'    => $ap['city'],
+    'country' => $ap['country'],
+    'name'    => $ap['name'],
+    'region'  => $ap['region'],
+], array_keys($airports), $airports), JSON_UNESCAPED_UNICODE) ?>;
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
