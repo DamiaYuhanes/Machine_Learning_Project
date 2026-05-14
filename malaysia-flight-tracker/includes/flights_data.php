@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// FlightGo — International Flight Data Engine
+// Mia Flight n Go — International Flight Data Engine
 // ============================================================
 
 $airlines = [

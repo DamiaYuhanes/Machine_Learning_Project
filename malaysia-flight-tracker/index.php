@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$page_title  = 'FlightGo — Global Flight Price Tracker';
+$page_title  = 'Mia Flight n Go — Global Flight Price Tracker';
 $active_page = 'home';
 $base_path   = '';
 $airports    = get_airport_list();
@@ -186,7 +186,7 @@ require_once 'includes/header.php';
 <!-- Features -->
 <section class="features">
     <div class="container">
-        <div class="section-header"><h2>Why FlightGo?</h2></div>
+        <div class="section-header"><h2>Why Mia Flight n Go?</h2></div>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🌍</div>

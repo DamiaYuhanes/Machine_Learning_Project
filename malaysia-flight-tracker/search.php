@@ -47,7 +47,7 @@ $to_ap     = $airports[$to]   ?? ['city'=>$to,   'country'=>''];
 $from_city = $from_ap['city'];
 $to_city   = $to_ap['city'];
 
-$page_title  = "Flights $from → $to — FlightGo";
+$page_title  = "Flights $from → $to — Mia Flight n Go";
 $active_page = 'home';
 $base_path   = '';
 

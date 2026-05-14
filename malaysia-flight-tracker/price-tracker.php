@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$page_title  = 'Price Tracker & Alerts — FlightGo';
+$page_title  = 'Price Tracker & Alerts — Mia Flight n Go';
 $active_page = 'tracker';
 $base_path   = '';
 $airports    = get_airport_list();
@@ -41,7 +41,7 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code,$ap)=>['code'=>$code,'city'
 <div class="tracker-hero">
     <div class="container">
         <h1 class="tracker-title">✈️ Flight Price Tracker</h1>
-        <p class="tracker-subtitle">Set a budget, watch a route — FlightGo alerts you on-screen the moment prices drop.</p>
+        <p class="tracker-subtitle">Set a budget, watch a route — Mia Flight n Go alerts you on-screen the moment prices drop.</p>
     </div>
 </div>
 
@@ -61,7 +61,7 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code,$ap)=>['code'=>$code,'city'
             </div>
             <div class="step">
                 <div class="step-num">3</div>
-                <div class="step-content"><h4>Get In-App Alerts</h4><p>Every time you visit FlightGo, prices are checked automatically. If your target is hit, the bell icon lights up.</p></div>
+                <div class="step-content"><h4>Get In-App Alerts</h4><p>Every time you visit Mia Flight n Go, prices are checked automatically. If your target is hit, the bell icon lights up.</p></div>
             </div>
         </div>
         <div class="step-cta">

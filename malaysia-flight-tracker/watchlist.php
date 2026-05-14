@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$page_title  = 'My Watchlist — FlightGo';
+$page_title  = 'My Watchlist — Mia Flight n Go';
 $active_page = 'watchlist';
 $base_path   = '';
 $airports    = get_airport_list();

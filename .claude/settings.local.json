@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git commit *)",
+      "Bash(powershell -Command \"\\(Get-Content search.php\\) -replace 'const AIRPORTS =', 'window.AIRPORTS =' | Set-Content search.php\")",
+      "Bash(powershell -Command \"\\(Get-Content price-tracker.php\\) -replace 'const AIRPORTS =', 'window.AIRPORTS =' | Set-Content price-tracker.php\")",
+      "Bash(powershell -Command \"\\(Get-Content watchlist.php\\) -replace 'const AIRPORTS =', 'window.AIRPORTS =' | Set-Content watchlist.php\")",
+      "Bash(powershell -Command \"\\(Get-Content flight-details.php\\) -replace 'const AIRPORTS =', 'window.AIRPORTS =' | Set-Content flight-details.php\")",
+      "Bash(powershell -Command \"\\(Get-Content index.php\\) -replace 'const AIRPORTS =', 'window.AIRPORTS =' | Set-Content index.php\")"
+    ]
+  }
+}

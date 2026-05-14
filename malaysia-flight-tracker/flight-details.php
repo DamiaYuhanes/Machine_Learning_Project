@@ -30,7 +30,7 @@ $to_ap     = $airports[$to]   ?? ['city'=>$to,  'country'=>'','name'=>$to];
 $from_city = $from_ap['city'];
 $to_city   = $to_ap['city'];
 
-$page_title  = $flight ? "{$flight['flight_no']} {$from_city} → {$to_city} — FlightGo" : 'Flight Details — FlightGo';
+$page_title  = $flight ? "{$flight['flight_no']} {$from_city} → {$to_city} — Mia Flight n Go" : 'Flight Details — Mia Flight n Go';
 $active_page = 'home';
 $base_path   = '';
 
@@ -200,7 +200,7 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code,$ap)=>['code'=>$code,'city'
                 </div>
 
                 <div class="booking-disclaimer">
-                    ⚠️ FlightGo is a price tracker. Clicking below opens the airline's official booking site.
+                    ⚠️ Mia Flight n Go is a price tracker. Clicking below opens the airline's official booking site.
                 </div>
 
                 <?php

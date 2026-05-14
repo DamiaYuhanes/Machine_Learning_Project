@@ -1,5 +1,5 @@
 /* ============================================================
-   FlightGo — Main JavaScript
+   Mia Flight n Go — Main JavaScript
    Handles: airport search, swap, pax counter, watchlist,
             price-check API, in-app notifications, chart
    ============================================================ */
@@ -207,7 +207,7 @@
      Stores items in localStorage. Each item:
      { id, from, to, fromCity, toCity, date, targetPrice, airline, flightNo, dep, addedAt }
   ════════════════════════════════════════════════════════════ */
-  const WL_KEY = 'flightgo_watchlist_v2';
+  const WL_KEY = 'mia_flightngo_watchlist_v2';
 
   function wlLoad()        { try { return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); } catch { return []; } }
   function wlSave(items)   { localStorage.setItem(WL_KEY, JSON.stringify(items)); }
@@ -769,7 +769,7 @@
   calModal?.addEventListener('click', e => { if (e.target === calModal) calModal.style.display = 'none'; });
 
   // ── Currency Switcher ─────────────────────────────────────
-  const CURR_KEY = 'flightgo_currency';
+  const CURR_KEY = 'mia_flightngo_currency';
   let currRate = 1, currCode = 'MYR';
 
   function loadCurrency() {
@@ -818,5 +818,5 @@
   loadCurrency();
   applyPrices();
 
-  console.log('✈ FlightGo ready');
+  console.log('✈ Mia Flight n Go ready');
 })();

@@ -1,5 +1,5 @@
 <?php
-// FlightGo — Price Check API
+// Mia Flight n Go — Price Check API
 // POST JSON array of watchlist items, returns current prices + match status
 
 header('Content-Type: application/json');

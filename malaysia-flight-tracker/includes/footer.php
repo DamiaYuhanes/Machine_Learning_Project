@@ -2,7 +2,7 @@
     <div class="container footer-inner">
         <div class="footer-brand">
             <span class="logo-icon">✈</span>
-            <span class="logo-text">Flight<span class="logo-accent">Go</span></span>
+            <span class="logo-text">Mia Flight n <span class="logo-accent">Go</span></span>
             <p class="footer-tagline">Global flight price tracker — 80+ airports worldwide</p>
         </div>
         <div class="footer-links">
@@ -38,7 +38,7 @@
     </div>
     <div class="footer-bottom">
         <div class="container">
-            <p>© <?= date('Y') ?> FlightGo · Prices are indicative and may vary. Not an official booking platform.</p>
+            <p>© <?= date('Y') ?> Mia Flight n Go · Prices are indicative and may vary. Not an official booking platform.</p>
         </div>
     </div>
 </footer>

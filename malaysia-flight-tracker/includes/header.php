@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($page_title ?? 'FlightGo — Global Flight Price Tracker') ?></title>
-    <meta name="description" content="FlightGo — Compare international flight prices. Track deals from 80+ airports worldwide. Set price alerts and get notified instantly.">
+    <title><?= htmlspecialchars($page_title ?? 'Mia Flight n Go — Global Flight Price Tracker') ?></title>
+    <meta name="description" content="Mia Flight n Go — Compare international flight prices. Track deals from 80+ airports worldwide. Set price alerts and get notified instantly.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
     <div class="container header-inner">
         <a href="<?= $base_path ?? '' ?>index.php" class="logo">
             <span class="logo-icon">✈</span>
-            <span class="logo-text">Flight<span class="logo-accent">Go</span></span>
+            <span class="logo-text">Mia Flight n <span class="logo-accent">Go</span></span>
         </a>
         <nav class="header-nav">
             <a href="<?= $base_path ?? '' ?>index.php"         class="nav-link <?= ($active_page??'')==='home'    ?'active':'' ?>">Search Flights</a>
