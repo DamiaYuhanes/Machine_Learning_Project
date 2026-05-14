@@ -12,7 +12,7 @@ $pax         = max(1, min(9, (int)($_GET['pax'] ?? 1)));
 $cabin       = in_array($_GET['class'] ?? '', ['economy','business','first']) ? $_GET['class'] : 'economy';
 $trip        = ($_GET['trip'] ?? '') === 'return' ? 'return' : 'one-way';
 $return_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['return_date'] ?? '') ? $_GET['return_date'] : date('Y-m-d', strtotime('+10 days'));
-$sort        = in_array($_GET['sort'] ?? '', ['price','duration','departure','airline']) ? $_GET['sort'] : 'price';
+$sort        = in_array($_GET['sort'] ?? '', ['best','price','duration','departure','airline']) ? $_GET['sort'] : 'price';
 $max_price   = isset($_GET['max_price']) && is_numeric($_GET['max_price']) ? (int)$_GET['max_price'] : 99999;
 $stops_filter   = $_GET['stops']   ?? 'any';
 $airline_filter = $_GET['airline'] ?? '';
@@ -33,6 +33,7 @@ usort($filtered, function($a, $b) use ($sort, $cabin) {
     $pa = match($cabin) { 'business'=>$a['business_price'], 'first'=>($a['first_price']??PHP_INT_MAX), default=>$a['economy_price'] };
     $pb = match($cabin) { 'business'=>$b['business_price'], 'first'=>($b['first_price']??PHP_INT_MAX), default=>$b['economy_price'] };
     return match($sort) {
+        'best'      => ($pa + $a['duration_mins']/60*150) <=> ($pb + $b['duration_mins']/60*150),
         'duration'  => $a['duration_mins'] <=> $b['duration_mins'],
         'departure' => strcmp($a['departure'], $b['departure']),
         'airline'   => strcmp($a['airline'], $b['airline']),
@@ -102,6 +103,32 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
     </div>
 </div>
 
+<?php
+// Generate 30-day price calendar for current route
+$cal_prices = [];
+for ($d = 0; $d < 31; $d++) {
+    $cal_date = date('Y-m-d', strtotime("+$d days"));
+    $cal_fl = generate_flights($from, $to, $cal_date, 1);
+    if ($cal_fl) {
+        $cal_prices[$cal_date] = match($cabin) {
+            'business' => $cal_fl[0]['business_price'],
+            'first'    => $cal_fl[0]['first_price'] ?? $cal_fl[0]['economy_price'],
+            default    => $cal_fl[0]['economy_price'],
+        };
+    }
+}
+$cal_min = $cal_prices ? min($cal_prices) : 0;
+$cal_max = $cal_prices ? max($cal_prices) : 0;
+?>
+<script>
+window.CAL_PRICES = <?= json_encode($cal_prices) ?>;
+window.CAL_FROM = '<?= $from ?>';
+window.CAL_TO = '<?= $to ?>';
+window.CAL_CABIN = '<?= $cabin ?>';
+window.CAL_PAX = <?= $pax ?>;
+window.CAL_SELECTED = '<?= $date ?>';
+</script>
+
 <div class="results-page">
     <div class="container results-layout">
 
@@ -150,6 +177,21 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
                     </div>
                 </div>
 
+                <div class="filter-group">
+                    <label class="filter-label">Departure Time</label>
+                    <div class="time-chips">
+                        <label class="time-chip"><input type="checkbox" class="dep-time-cb" value="night"> 🌑 Night<br><small>00–06</small></label>
+                        <label class="time-chip"><input type="checkbox" class="dep-time-cb" value="morning"> ☀️ Morning<br><small>06–12</small></label>
+                        <label class="time-chip"><input type="checkbox" class="dep-time-cb" value="afternoon"> 🌤 Afternoon<br><small>12–18</small></label>
+                        <label class="time-chip"><input type="checkbox" class="dep-time-cb" value="evening"> 🌙 Evening<br><small>18–24</small></label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Max Flight Duration: <strong id="dur-filter-val">Any</strong></label>
+                    <input type="range" id="dur-filter" min="1" max="25" step="1" value="25" style="width:100%">
+                </div>
+
                 <button type="submit" class="filter-apply-btn">Apply Filters</button>
                 <a href="search.php?from=<?= $from ?>&to=<?= $to ?>&date=<?= $date ?>&pax=<?= $pax ?>&class=<?= $cabin ?>" class="filter-reset">Reset</a>
             </form>
@@ -169,12 +211,13 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
                 </div>
                 <div class="sort-bar">
                     <span>Sort:</span>
-                    <?php foreach (['price'=>'Price','duration'=>'Duration','departure'=>'Departure','airline'=>'Airline'] as $k=>$v): ?>
+                    <?php foreach (['best'=>'Best','price'=>'Price','duration'=>'Duration','departure'=>'Departure','airline'=>'Airline'] as $k=>$v): ?>
                     <a href="?from=<?=$from?>&to=<?=$to?>&date=<?=$date?>&pax=<?=$pax?>&class=<?=$cabin?>&sort=<?=$k?>&max_price=<?=$max_price?>&stops=<?=$stops_filter?>&airline=<?=$airline_filter?>"
                        class="sort-btn <?= $sort===$k?'active':'' ?>"><?= $v ?></a>
                     <?php endforeach; ?>
                 </div>
             </div>
+            <button class="cal-trigger-btn" id="open-price-cal">📅 Price Calendar</button>
 
             <?php if (empty($filtered)): ?>
             <div class="no-results">
@@ -203,7 +246,12 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
                     $price = match($cabin) {'business'=>$f['business_price'],'first'=>($f['first_price']??0),default=>$f['economy_price']};
                     $is_best = ($idx === 0);
                 ?>
-                <div class="flight-card <?= $is_best?'flight-card--best':'' ?>">
+                <div class="flight-card <?= $is_best?'flight-card--best':'' ?>"
+                     data-dep="<?= $f['departure'] ?>"
+                     data-dur="<?= $f['duration_mins'] ?>"
+                     data-co2="<?= $f['co2_kg'] ?>"
+                     data-eco="<?= $f['economy_price'] ?>"
+                     data-biz="<?= $f['business_price'] ?>">
                     <?php if ($is_best): ?><div class="best-tag">Best Value</div><?php endif; ?>
 
                     <div class="flight-card-inner">
@@ -249,11 +297,12 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
                             <span class="amenity">🍽 <?= htmlspecialchars($f['meal']) ?></span>
                             <?php if ($f['refundable']): ?><span class="amenity amenity--green">✅ Refundable</span><?php endif; ?>
                             <span class="amenity amenity--seats"><?= $f['seats_left'] ?> seats</span>
+                            <span class="amenity amenity--co2">🌿 <?= $f['co2_kg'] ?> kg CO₂</span>
                         </div>
 
                         <div class="flight-price-block">
                             <div class="price-per">per person</div>
-                            <div class="price-main"><?= format_price($price) ?></div>
+                            <div class="price-main"><span class="fx" data-myr="<?= $price ?>"><?= format_price($price) ?></span></div>
                             <?php if ($pax>1): ?><div class="price-total"><?= format_price($price*$pax) ?> total</div><?php endif; ?>
 
                             <a href="flight-details.php?from=<?= $from ?>&to=<?= $to ?>&date=<?= $date ?>&pax=<?= $pax ?>&class=<?= $cabin ?>&fn=<?= urlencode($f['flight_no']) ?>&dep=<?= urlencode($f['departure']) ?>&airline=<?= $f['airline_code'] ?>"
@@ -316,6 +365,25 @@ window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
             </div>
             <?php endif; ?>
         </main>
+    </div>
+</div>
+
+<!-- Price Calendar Modal -->
+<div class="modal-overlay" id="price-cal-modal" style="display:none">
+    <div class="modal-box modal-box--wide">
+        <div class="modal-header">
+            <h3>📅 Price Calendar</h3>
+            <button class="modal-close" id="cal-modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-sub" id="cal-subtitle"></p>
+            <div class="cal-legend">
+                <span class="cal-leg cal-leg--low">Cheapest</span>
+                <span class="cal-leg cal-leg--mid">Average</span>
+                <span class="cal-leg cal-leg--high">Expensive</span>
+            </div>
+            <div class="price-calendar" id="price-calendar"></div>
+        </div>
     </div>
 </div>
 

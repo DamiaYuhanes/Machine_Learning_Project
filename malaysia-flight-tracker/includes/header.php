@@ -29,7 +29,19 @@
                 <span class="bell-icon">🔔</span>
                 <span class="bell-badge" id="bell-badge" style="display:none">0</span>
             </button>
-            <span class="currency-badge">MYR</span>
+            <div class="currency-wrap">
+                <button class="currency-btn" id="currency-toggle">MYR ▾</button>
+                <div class="currency-dropdown" id="currency-dropdown" style="display:none">
+                    <div class="currency-opt active" data-code="MYR" data-rate="1">MYR — Malaysian Ringgit</div>
+                    <div class="currency-opt" data-code="USD" data-rate="0.213">USD — US Dollar</div>
+                    <div class="currency-opt" data-code="SGD" data-rate="0.286">SGD — Singapore Dollar</div>
+                    <div class="currency-opt" data-code="EUR" data-rate="0.198">EUR — Euro</div>
+                    <div class="currency-opt" data-code="GBP" data-rate="0.170">GBP — British Pound</div>
+                    <div class="currency-opt" data-code="AUD" data-rate="0.327">AUD — Australian Dollar</div>
+                    <div class="currency-opt" data-code="JPY" data-rate="32.1">JPY — Japanese Yen</div>
+                    <div class="currency-opt" data-code="IDR" data-rate="3390">IDR — Indonesian Rupiah</div>
+                </div>
+            </div>
         </div>
     </div>
 </header>

@@ -653,5 +653,170 @@
   /* ── Init: check prices on every page load ───────────────── */
   setTimeout(checkPricesAndNotify, 600);
 
+  // ── Client-side filters (time + duration) ──────────────────
+  function applyClientFilters() {
+    const checkedTimes = [...$$('.dep-time-cb:checked')].map(c => c.value);
+    const maxDur = parseInt($('#dur-filter')?.value || 25);
+    $$('.flight-card').forEach(card => {
+      const dep = card.dataset.dep || '00:00';
+      const h = parseInt(dep.split(':')[0]);
+      const dur = parseInt(card.dataset.dur || 0);
+      let timeOk = checkedTimes.length === 0;
+      if (!timeOk) {
+        if (checkedTimes.includes('night')     && h >= 0  && h < 6)  timeOk = true;
+        if (checkedTimes.includes('morning')   && h >= 6  && h < 12) timeOk = true;
+        if (checkedTimes.includes('afternoon') && h >= 12 && h < 18) timeOk = true;
+        if (checkedTimes.includes('evening')   && h >= 18 && h < 24) timeOk = true;
+      }
+      const durOk = maxDur >= 25 || dur <= maxDur * 60;
+      card.style.display = (timeOk && durOk) ? '' : 'none';
+    });
+    // Update count
+    const visible = $$('.flight-card').filter(c => c.style.display !== 'none').length;
+    const meta = $('.results-meta');
+    if (meta) {
+      meta.querySelector('strong').textContent = visible + ' flight' + (visible !== 1 ? 's' : '') + ' found';
+    }
+  }
+
+  $$('.dep-time-cb').forEach(cb => cb.addEventListener('change', applyClientFilters));
+
+  const durFilter = $('#dur-filter');
+  const durVal = $('#dur-filter-val');
+  if (durFilter) {
+    durFilter.addEventListener('input', () => {
+      const v = parseInt(durFilter.value);
+      durVal.textContent = v >= 25 ? 'Any' : v + 'h max';
+      applyClientFilters();
+    });
+  }
+
+  // ── Price Calendar ────────────────────────────────────────
+  const openCalBtn = $('#open-price-cal');
+  const calModal = $('#price-cal-modal');
+  const calClose = $('#cal-modal-close');
+
+  function renderPriceCalendar() {
+    const prices = window.CAL_PRICES || {};
+    const selected = window.CAL_SELECTED || '';
+    const from = window.CAL_FROM || '';
+    const to = window.CAL_TO || '';
+    const cabin = window.CAL_CABIN || 'economy';
+    const pax = window.CAL_PAX || 1;
+    const cal = $('#price-calendar');
+    const sub = $('#cal-subtitle');
+    if (!cal) return;
+
+    const vals = Object.values(prices).filter(v => v > 0);
+    const minP = vals.length ? Math.min(...vals) : 0;
+    const maxP = vals.length ? Math.max(...vals) : 0;
+    const range = maxP - minP || 1;
+
+    if (sub) sub.textContent = `${from} → ${to} · ${cabin.charAt(0).toUpperCase()+cabin.slice(1)} · ${pax} pax`;
+
+    // Build 5-week grid starting from today
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const startDate = new Date(today);
+    // Start from Monday of current week
+    const dow = startDate.getDay();
+    startDate.setDate(startDate.getDate() - (dow === 0 ? 6 : dow - 1));
+
+    let html = '<div class="cal-grid"><div class="cal-day-header">Mon</div><div class="cal-day-header">Tue</div><div class="cal-day-header">Wed</div><div class="cal-day-header">Thu</div><div class="cal-day-header">Fri</div><div class="cal-day-header">Sat</div><div class="cal-day-header">Sun</div>';
+
+    for (let w = 0; w < 5; w++) {
+      for (let d = 0; d < 7; d++) {
+        const dt = new Date(startDate);
+        dt.setDate(startDate.getDate() + w*7 + d);
+        const key = dt.toISOString().split('T')[0];
+        const price = prices[key];
+        const isPast = dt < today;
+        const isSel = key === selected;
+
+        let cls = 'cal-cell';
+        if (isPast) cls += ' cal-cell--past';
+        if (isSel) cls += ' cal-cell--selected';
+        if (price) {
+          const pct = (price - minP) / range;
+          if (pct <= 0.25) cls += ' cal-cell--low';
+          else if (pct <= 0.65) cls += ' cal-cell--mid';
+          else cls += ' cal-cell--high';
+        }
+
+        const url = `search.php?from=${from}&to=${to}&date=${key}&pax=${pax}&class=${cabin}`;
+        const priceStr = price ? 'RM ' + price.toLocaleString() : '—';
+        const dayNum = dt.getDate();
+        const monthStr = dt.toLocaleString('default', { month: 'short' });
+
+        html += isPast
+          ? `<div class="${cls}"><div class="cal-date">${dayNum}<span>${monthStr}</span></div><div class="cal-price">—</div></div>`
+          : `<a href="${url}" class="${cls}"><div class="cal-date">${dayNum}<span>${monthStr}</span></div><div class="cal-price">${priceStr}</div></a>`;
+      }
+    }
+    html += '</div>';
+    cal.innerHTML = html;
+  }
+
+  if (openCalBtn && calModal) {
+    openCalBtn.addEventListener('click', () => {
+      calModal.style.display = 'flex';
+      renderPriceCalendar();
+    });
+  }
+  if (calClose && calModal) {
+    calClose.addEventListener('click', () => calModal.style.display = 'none');
+  }
+  calModal?.addEventListener('click', e => { if (e.target === calModal) calModal.style.display = 'none'; });
+
+  // ── Currency Switcher ─────────────────────────────────────
+  const CURR_KEY = 'flightgo_currency';
+  let currRate = 1, currCode = 'MYR';
+
+  function loadCurrency() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CURR_KEY) || '{}');
+      currCode = saved.code || 'MYR';
+      currRate = saved.rate || 1;
+    } catch (e) { currCode = 'MYR'; currRate = 1; }
+  }
+
+  function applyPrices() {
+    $$('.fx').forEach(el => {
+      const myr = parseInt(el.dataset.myr || 0);
+      const converted = Math.round(myr * currRate);
+      el.textContent = currCode === 'MYR'
+        ? 'RM ' + myr.toLocaleString()
+        : currCode + ' ' + converted.toLocaleString();
+    });
+    const btn = $('#currency-toggle');
+    if (btn) btn.textContent = currCode + ' ▾';
+    $$('.currency-opt').forEach(o => o.classList.toggle('active', o.dataset.code === currCode));
+  }
+
+  function saveCurrency(code, rate) {
+    currCode = code; currRate = rate;
+    localStorage.setItem(CURR_KEY, JSON.stringify({code, rate}));
+    applyPrices();
+  }
+
+  const currToggle = $('#currency-toggle');
+  const currDrop = $('#currency-dropdown');
+  if (currToggle && currDrop) {
+    currToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      currDrop.style.display = currDrop.style.display === 'none' ? 'block' : 'none';
+    });
+    document.addEventListener('click', () => { if (currDrop) currDrop.style.display = 'none'; });
+    $$('.currency-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        saveCurrency(opt.dataset.code, parseFloat(opt.dataset.rate));
+        currDrop.style.display = 'none';
+      });
+    });
+  }
+
+  loadCurrency();
+  applyPrices();
+
   console.log('✈ FlightGo ready');
 })();

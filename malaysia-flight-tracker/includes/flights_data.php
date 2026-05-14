@@ -335,6 +335,7 @@ function generate_flights(string $from, string $to, string $date, int $passenger
                 'price_history'  => $history,
                 'low_price'      => min(array_column($history, 'price')),
                 'high_price'     => max(array_column($history, 'price')),
+                'co2_kg'         => (int)round($km * 0.089),
             ];
         }
     }
