@@ -295,7 +295,7 @@ function generate_flights(string $from, string $to, string $date, int $passenger
             for ($d = 30; $d >= 0; $d -= 3) {
                 $history[] = [
                     'date'  => date('Y-m-d', strtotime("-{$d} days")),
-                    'price' => (int)round($eco * (0.78 + lcg_value() * 0.52)),
+                    'price' => (int)round($eco * (0.78 + (random_int(0, 1000000) / 1000000) * 0.52)),
                 ];
             }
 
