@@ -10,7 +10,7 @@ require_once 'includes/header.php';
 ?>
 
 <script>
-const AIRPORTS = <?= json_encode(array_map(fn($code,$ap)=>['code'=>$code,'city'=>$ap['city'],'country'=>$ap['country'],'name'=>$ap['name'],'region'=>$ap['region']], array_keys($airports), $airports), JSON_UNESCAPED_UNICODE) ?>;
+window.AIRPORTS = <?= json_encode(array_map(fn($code,$ap)=>['code'=>$code,'city'=>$ap['city'],'country'=>$ap['country'],'name'=>$ap['name'],'region'=>$ap['region']], array_keys($airports), $airports), JSON_UNESCAPED_UNICODE) ?>;
 </script>
 
 <div class="watchlist-page">

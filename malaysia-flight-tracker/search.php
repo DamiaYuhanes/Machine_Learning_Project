@@ -55,7 +55,7 @@ require_once 'includes/header.php';
 
 <!-- Airport autocomplete data -->
 <script>
-const AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
+window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
     'code'=>$code,'city'=>$ap['city'],'country'=>$ap['country'],'name'=>$ap['name'],'region'=>$ap['region']
 ], array_keys($airports), $airports), JSON_UNESCAPED_UNICODE) ?>;
 </script>

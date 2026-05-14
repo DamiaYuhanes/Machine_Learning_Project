@@ -227,7 +227,7 @@ require_once 'includes/header.php';
 
 <!-- Airport JS data for autocomplete -->
 <script>
-const AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
+window.AIRPORTS = <?= json_encode(array_map(fn($code, $ap) => [
     'code'    => $code,
     'city'    => $ap['city'],
     'country' => $ap['country'],
