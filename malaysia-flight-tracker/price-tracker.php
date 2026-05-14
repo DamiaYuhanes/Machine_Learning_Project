@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$page_title  = 'Price Tracker & Alerts — TerbangMY';
+$page_title  = 'Price Tracker & Alerts — FlightGo';
 $active_page = 'tracker';
 $base_path   = '';
 $airports    = get_airport_list();

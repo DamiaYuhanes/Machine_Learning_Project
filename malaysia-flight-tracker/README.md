@@ -1,4 +1,4 @@
-# ✈️ TerbangMY — Malaysia Flight Price Tracker
+# ✈️ FlightGo — Malaysia Flight Price Tracker
 
 A full-featured Malaysia domestic flight price tracker website built with **PHP**, similar to Agoda Flights but focused exclusively on Malaysian routes.
 
@@ -102,4 +102,4 @@ MIT License — Free to use and modify for educational and personal projects.
 
 ---
 
-*TerbangMY is a demo/educational project. It is not affiliated with any airline or booking platform. Prices shown are simulated.*
+*FlightGo is a demo/educational project. It is not affiliated with any airline or booking platform. Prices shown are simulated.*

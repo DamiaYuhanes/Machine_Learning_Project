@@ -1,5 +1,5 @@
 /* ============================================================
-   TerbangMY — Main JavaScript
+   FlightGo — Main JavaScript
    ============================================================ */
 
 (function () {
@@ -268,5 +268,5 @@
     filterSidebar.style.display = 'none';
   }
 
-  console.log('✈ TerbangMY loaded');
+  console.log('✈ FlightGo loaded');
 })();

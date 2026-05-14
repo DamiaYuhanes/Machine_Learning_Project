@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$page_title  = 'TerbangMY — Malaysia Flight Price Tracker';
+$page_title  = 'FlightGo — Malaysia Flight Price Tracker';
 $active_page = 'home';
 $base_path   = '';
 $airports    = get_airport_list();
@@ -169,7 +169,7 @@ require_once 'includes/header.php';
 <section class="features">
     <div class="container">
         <div class="section-header">
-            <h2>Why TerbangMY?</h2>
+            <h2>Why FlightGo?</h2>
         </div>
         <div class="features-grid">
             <div class="feature-card">

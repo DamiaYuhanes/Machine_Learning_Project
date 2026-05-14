@@ -43,7 +43,7 @@ $filtered = array_values($filtered);
 
 $from_city = $airports[$from]['city'] ?? $from;
 $to_city   = $airports[$to]['city']   ?? $to;
-$page_title = "Flights $from → $to on " . date('d M Y', strtotime($date)) . ' — TerbangMY';
+$page_title = "Flights $from → $to on " . date('d M Y', strtotime($date)) . ' — FlightGo';
 $active_page = 'home';
 $base_path = '';
 

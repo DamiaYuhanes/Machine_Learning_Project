@@ -2,7 +2,7 @@
     <div class="container footer-inner">
         <div class="footer-brand">
             <span class="logo-icon">✈</span>
-            <span class="logo-text">Terbang<span class="logo-accent">MY</span></span>
+            <span class="logo-text">Flight<span class="logo-accent">Go</span></span>
             <p class="footer-tagline">Malaysia's smartest flight price tracker</p>
         </div>
         <div class="footer-links">
@@ -38,7 +38,7 @@
     </div>
     <div class="footer-bottom">
         <div class="container">
-            <p>© <?= date('Y') ?> TerbangMY · Prices are indicative and may vary. Not an official booking platform.</p>
+            <p>© <?= date('Y') ?> FlightGo · Prices are indicative and may vary. Not an official booking platform.</p>
         </div>
     </div>
 </footer>

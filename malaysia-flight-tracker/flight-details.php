@@ -30,7 +30,7 @@ $price     = $flight ? (($cabin === 'business') ? $flight['business_price'] : $f
 $from_city = $airports[$from]['city'] ?? $from;
 $to_city   = $airports[$to]['city']   ?? $to;
 
-$page_title  = $flight ? "{$flight['flight_no']} {$from_city} → {$to_city} — TerbangMY" : 'Flight Details — TerbangMY';
+$page_title  = $flight ? "{$flight['flight_no']} {$from_city} → {$to_city} — FlightGo" : 'Flight Details — FlightGo';
 $active_page = 'home';
 $base_path   = '';
 
@@ -219,7 +219,7 @@ require_once 'includes/header.php';
                 </div>
 
                 <div class="booking-disclaimer">
-                    <p>⚠️ TerbangMY is a price comparison & tracker tool. Clicking below will take you to the airline's official website to complete your booking.</p>
+                    <p>⚠️ FlightGo is a price comparison & tracker tool. Clicking below will take you to the airline's official website to complete your booking.</p>
                 </div>
 
                 <?php
