@@ -117,6 +117,18 @@
   buildAirportDropdown($('#c-from-search'), $('#c-from'), $('#c-from-dropdown'));
   buildAirportDropdown($('#c-to-search'),   $('#c-to'),   $('#c-to-dropdown'));
 
+  const compactForm = $('.compact-form');
+  if (compactForm) {
+    compactForm.addEventListener('submit', e => {
+      const t = $('#c-to');
+      if (!t || !t.value) {
+        e.preventDefault();
+        toast('Please select a destination airport.', 'error');
+        $('#c-to-search')?.focus();
+      }
+    });
+  }
+
   // Watchlist quick-add form (watchlist.php)
   buildAirportDropdown($('#qw-from-search'), $('#qw-from'), $('#qw-from-dropdown'));
   buildAirportDropdown($('#qw-to-search'),   $('#qw-to'),   $('#qw-to-dropdown'));
@@ -169,6 +181,12 @@
   if (searchForm) {
     searchForm.addEventListener('submit', e => {
       const f = $('#from'), t = $('#to');
+      if (!t || !t.value) {
+        e.preventDefault();
+        toast('Please select a destination airport.', 'error');
+        $('#to-search')?.focus();
+        return;
+      }
       if (f && t && f.value && t.value && f.value === t.value) {
         e.preventDefault();
         toast('Departure and destination cannot be the same.', 'error');

@@ -1,8 +1,12 @@
 <?php
 require_once 'includes/flights_data.php';
 
-$from        = strtoupper(preg_replace('/[^A-Z]/', '', $_GET['from']        ?? 'KUL'));
-$to          = strtoupper(preg_replace('/[^A-Z]/', '', $_GET['to']          ?? 'SIN'));
+$from        = strtoupper(preg_replace('/[^A-Z]/', '', $_GET['from'] ?? 'KUL')) ?: 'KUL';
+$to          = strtoupper(preg_replace('/[^A-Z]/', '', $_GET['to']   ?? ''));
+if (!$to || $to === $from) {
+    header('Location: index.php?error=' . (!$to ? 'nodest' : 'samedest'));
+    exit;
+}
 $date        = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date'] ?? '') ? $_GET['date'] : date('Y-m-d', strtotime('+3 days'));
 $pax         = max(1, min(9, (int)($_GET['pax'] ?? 1)));
 $cabin       = in_array($_GET['class'] ?? '', ['economy','business','first']) ? $_GET['class'] : 'economy';
